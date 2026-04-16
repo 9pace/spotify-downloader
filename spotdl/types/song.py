@@ -100,39 +100,44 @@ class Song:
         raw_album_meta: Dict[str, Any] = spotify_client.album(album_id)  # type: ignore
 
         # create song object
+        album_copyrights = raw_album_meta.get("copyrights")
+        album_tracks = raw_album_meta.get("tracks", {}).get("items", [])
+        album_images = raw_album_meta.get("images", [])
+        album_release_date = raw_album_meta.get("release_date", "0000")
+
         return cls(
             name=raw_track_meta["name"],
             artists=[artist["name"] for artist in raw_track_meta["artists"]],
             artist=raw_track_meta["artists"][0]["name"],
             artist_id=primary_artist_id,
             album_id=album_id,
-            album_name=raw_album_meta["name"],
-            album_artist=raw_album_meta["artists"][0]["name"],
+            album_name=raw_album_meta.get("name", ""),
+            album_artist=raw_album_meta.get("artists", [{}])[0].get("name", ""),
             album_type=raw_album_meta.get("album_type"),
             copyright_text=(
-                raw_album_meta["copyrights"][0]["text"]
-                if raw_album_meta["copyrights"]
+                album_copyrights[0]["text"]
+                if album_copyrights
                 else None
             ),
             genres=raw_album_meta.get("genres", []) + raw_artist_meta.get("genres", []),
             disc_number=raw_track_meta["disc_number"],
-            disc_count=int(raw_album_meta["tracks"]["items"][-1]["disc_number"]),
+            disc_count=int(album_tracks[-1]["disc_number"]) if album_tracks else 1,
             duration=int(raw_track_meta["duration_ms"] / 1000),
-            year=int(raw_album_meta["release_date"][:4]),
-            date=raw_album_meta["release_date"],
+            year=int(album_release_date[:4]),
+            date=album_release_date,
             track_number=raw_track_meta["track_number"],
-            tracks_count=raw_album_meta["total_tracks"],
+            tracks_count=raw_album_meta.get("total_tracks", 1),
             isrc=raw_track_meta.get("external_ids", {}).get("isrc"),
             song_id=raw_track_meta["id"],
             explicit=raw_track_meta["explicit"],
-            publisher=raw_album_meta["label"],
+            publisher=raw_album_meta.get("label"),
             url=raw_track_meta["external_urls"]["spotify"],
             popularity=raw_track_meta["popularity"],
             cover_url=(
-                max(raw_album_meta["images"], key=lambda i: i["width"] * i["height"])[
+                max(album_images, key=lambda i: i["width"] * i["height"])[
                     "url"
                 ]
-                if raw_album_meta["images"]
+                if album_images
                 else None
             ),
         )
