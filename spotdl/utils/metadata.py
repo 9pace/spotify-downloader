@@ -590,15 +590,19 @@ def embed_wav_file(output_file: Path, song: Song):
     audio.tags.add(TIT2(encoding=3, text=song.name))  # type: ignore
     audio.tags.add(TPE1(encoding=3, text=song.artists))  # type: ignore
     audio.tags.add(TALB(encoding=3, text=song.album_name))  # type: ignore
-    audio.tags.add(TCOM(encoding=3, text=song.publisher))  # type: ignore
-    audio.tags.add(TCON(encoding=3, text=song.genres))  # type: ignore
-    audio.tags.add(TDRC(encoding=3, text=song.date))  # type: ignore
+    if song.publisher:
+        audio.tags.add(TCOM(encoding=3, text=song.publisher))  # type: ignore
+    if song.genres:
+        audio.tags.add(TCON(encoding=3, text=song.genres))  # type: ignore
+    if song.date:
+        audio.tags.add(TDRC(encoding=3, text=song.date))  # type: ignore
     audio.tags.add(  # type: ignore
         TRCK(encoding=3, text=f"{song.track_number}/{song.tracks_count}")  # type: ignore
     )
-    audio.tags.add(TDRC(encoding=3, text=song.date))  # type: ignore
-    audio.tags.add(WOAS(encoding=3, text=song.url))  # type: ignore
-    audio.tags.add(TSRC(encoding=3, text=song.isrc))  # type: ignore
+    if song.url:
+        audio.tags.add(WOAS(encoding=3, text=song.url))  # type: ignore
+    if song.isrc:
+        audio.tags.add(TSRC(encoding=3, text=song.isrc))  # type: ignore
 
     if song.download_url:
         audio.tags.add(COMM(encoding=3, text=song.download_url))  # type: ignore
